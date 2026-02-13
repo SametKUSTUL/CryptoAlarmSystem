@@ -1,10 +1,27 @@
+using CryptoAlarmSystem.Api.Middlewares;
 using CryptoAlarmSystem.Application;
 using CryptoAlarmSystem.Infrastructure;
 using CryptoAlarmSystem.Infrastructure.Data;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using NLog.Web;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracerProviderBuilder =>
+    {
+        tracerProviderBuilder
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("CryptoAlarmSystem.Api"))
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddConsoleExporter();
+    });
 
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
@@ -28,6 +45,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<RequestResponseLoggingMiddleware>();
 
 app.MapControllers();
 
