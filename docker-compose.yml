@@ -16,6 +16,19 @@ services:
     networks:
       - cryptoalarm-network
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: cryptoalarm-worker
+    environment:
+      - ApiSettings__BaseUrl=http://api:8080
+    depends_on:
+      - api
+    restart: on-failure
+    networks:
+      - cryptoalarm-network
+
   db:
     image: postgres:16-alpine
     container_name: cryptoalarm-db

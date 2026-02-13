@@ -5,6 +5,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 	ProjectSection(SolutionItems) = preProject
 		Dockerfile = Dockerfile
+		Dockerfile.worker = Dockerfile.worker
 		docker-compose.yml = docker-compose.yml
 		.dockerignore = .dockerignore
 		.gitignore = .gitignore
@@ -17,6 +18,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoAlarmSystem.Application", "src\CryptoAlarmSystem.Application\CryptoAlarmSystem.Application.csproj", "{1A5ED4EE-2C85-4614-886D-35398192CBF4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoAlarmSystem.Api", "src\CryptoAlarmSystem.Api\CryptoAlarmSystem.Api.csproj", "{90404CA0-933D-4410-B491-F46A7D1C5077}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoAlarmSystem.PriceWorker", "src\CryptoAlarmSystem.PriceWorker\CryptoAlarmSystem.PriceWorker.csproj", "{FF5E514A-F77C-4712-A8A0-28FD0213F575}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -76,6 +79,18 @@ Global
 		{90404CA0-933D-4410-B491-F46A7D1C5077}.Release|x64.Build.0 = Release|Any CPU
 		{90404CA0-933D-4410-B491-F46A7D1C5077}.Release|x86.ActiveCfg = Release|Any CPU
 		{90404CA0-933D-4410-B491-F46A7D1C5077}.Release|x86.Build.0 = Release|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Debug|x64.Build.0 = Debug|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Debug|x86.Build.0 = Debug|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Release|x64.ActiveCfg = Release|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Release|x64.Build.0 = Release|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Release|x86.ActiveCfg = Release|Any CPU
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,5 +100,6 @@ Global
 		{14FD5E65-3DEF-4AAA-9842-AA97E4AFFE9F} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{1A5ED4EE-2C85-4614-886D-35398192CBF4} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{90404CA0-933D-4410-B491-F46A7D1C5077} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{FF5E514A-F77C-4712-A8A0-28FD0213F575} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

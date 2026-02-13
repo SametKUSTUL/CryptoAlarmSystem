@@ -11,9 +11,7 @@ public static class DependencyInjection
         // Scoped services
         services.AddScoped<IAlarmService, AlarmService>();
         services.AddScoped<INotificationService, NotificationService>();
-        
-        // Hosted service (Singleton)
-        services.AddHostedService<PriceMonitorBackgroundService>();
+        services.AddScoped<IAlarmCheckService, AlarmCheckService>();
         
         return services;
     }
