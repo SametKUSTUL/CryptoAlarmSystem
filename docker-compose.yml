@@ -12,7 +12,11 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=cryptoalarm;Username=postgres;Password=postgres
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+    restart: on-failure
     networks:
       - cryptoalarm-network
 
@@ -40,11 +44,43 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cryptoalarm-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.18
+    container_name: cryptoalarm-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - cryptoalarm-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.18
+    container_name: cryptoalarm-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
     networks:
       - cryptoalarm-network
 
 volumes:
   postgres_data:
+  elasticsearch_data:
 
 networks:
   cryptoalarm-network:

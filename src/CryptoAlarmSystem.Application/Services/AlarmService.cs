@@ -44,14 +44,15 @@ public class AlarmService : IAlarmService
 
     public async Task<List<AlarmResponse>> GetActiveAlarmsAsync(string userId)
     {
-        return await _context.Alarms
+        var alarms = await _context.Alarms
             .Include(a => a.CryptoSymbol)
             .Include(a => a.AlarmType)
             .Include(a => a.AlarmNotificationChannels)
                 .ThenInclude(anc => anc.NotificationChannel)
             .Where(a => a.UserId == userId && !a.IsTriggered)
-            .Select(a => MapToAlarmResponse(a))
             .ToListAsync();
+
+        return alarms.Select(MapToAlarmResponse).ToList();
     }
 
     public async Task<bool> DeleteAlarmAsync(string userId, int alarmId)
@@ -92,14 +93,15 @@ public class AlarmService : IAlarmService
 
     public async Task<List<AlarmResponse>> GetTriggeredAlarmsAsync(string userId)
     {
-        return await _context.Alarms
+        var alarms = await _context.Alarms
             .Include(a => a.CryptoSymbol)
             .Include(a => a.AlarmType)
             .Include(a => a.AlarmNotificationChannels)
                 .ThenInclude(anc => anc.NotificationChannel)
             .Where(a => a.UserId == userId && a.IsTriggered)
-            .Select(a => MapToAlarmResponse(a))
             .ToListAsync();
+
+        return alarms.Select(MapToAlarmResponse).ToList();
     }
 
     public async Task<List<NotificationLogResponse>> GetAlarmLogsAsync(string userId, int alarmId)
@@ -152,14 +154,14 @@ public class AlarmService : IAlarmService
 
     private async Task<AlarmResponse> GetAlarmByIdAsync(int alarmId)
     {
-        return await _context.Alarms
+        var alarm = await _context.Alarms
             .Include(a => a.CryptoSymbol)
             .Include(a => a.AlarmType)
             .Include(a => a.AlarmNotificationChannels)
                 .ThenInclude(anc => anc.NotificationChannel)
-            .Where(a => a.Id == alarmId)
-            .Select(a => MapToAlarmResponse(a))
-            .FirstAsync();
+            .FirstAsync(a => a.Id == alarmId);
+
+        return MapToAlarmResponse(alarm);
     }
 
     private static AlarmResponse MapToAlarmResponse(Alarm alarm)
