@@ -9,15 +9,24 @@ public static class DbInitializer
     {
         await context.Database.EnsureCreatedAsync();
         
-        if (!await context.CryptoSymbols.AnyAsync())
+        var existingSymbols = await context.CryptoSymbols.Select(s => s.Code).ToListAsync();
+        var newSymbols = new[]
         {
-            var symbols = new[]
-            {
-                new CryptoSymbol { Code = "BTC", Name = "Bitcoin" },
-                new CryptoSymbol { Code = "ETH", Name = "Ethereum" },
-                new CryptoSymbol { Code = "SOL", Name = "Solana" }
-            };
-            await context.CryptoSymbols.AddRangeAsync(symbols);
+            new CryptoSymbol { Code = "BTC", Name = "Bitcoin" },
+            new CryptoSymbol { Code = "ETH", Name = "Ethereum" },
+            new CryptoSymbol { Code = "SOL", Name = "Solana" },
+            new CryptoSymbol { Code = "DOGE", Name = "Dogecoin" },
+            new CryptoSymbol { Code = "LTC", Name = "Litecoin" },
+            new CryptoSymbol { Code = "XRP", Name = "Ripple" },
+            new CryptoSymbol { Code = "BNB", Name = "Binance Coin" },
+            new CryptoSymbol { Code = "USDT", Name = "Tether" },
+            new CryptoSymbol { Code = "ADA", Name = "Cardano" }
+        };
+        
+        var symbolsToAdd = newSymbols.Where(s => !existingSymbols.Contains(s.Code)).ToArray();
+        if (symbolsToAdd.Any())
+        {
+            await context.CryptoSymbols.AddRangeAsync(symbolsToAdd);
         }
         
         if (!await context.NotificationChannels.AnyAsync())

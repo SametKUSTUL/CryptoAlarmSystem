@@ -1,3 +1,4 @@
+using CryptoAlarmSystem.Api.Filters;
 using CryptoAlarmSystem.Application.DTOs;
 using CryptoAlarmSystem.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -16,37 +17,31 @@ public class AlarmsController : ControllerBase
     }
 
     [HttpPost]
+    [ValidateUserId]
     public async Task<ActionResult<AlarmResponse>> CreateAlarm(
-        [FromHeader(Name = "X-User-Id")] string userId,
+        [FromHeader(Name = "X-User-Id")] string? userId,
         [FromBody] CreateAlarmRequest request)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-            return BadRequest("X-User-Id header is required");
-
-        var alarm = await _alarmService.CreateAlarmAsync(userId, request);
+        var alarm = await _alarmService.CreateAlarmAsync(userId!, request);
         return CreatedAtAction(nameof(GetAlarmLogs), new { id = alarm.Id }, alarm);
     }
 
     [HttpGet("active")]
+    [ValidateUserId]
     public async Task<ActionResult<List<AlarmResponse>>> GetActiveAlarms(
-        [FromHeader(Name = "X-User-Id")] string userId)
+        [FromHeader(Name = "X-User-Id")] string? userId)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-            return BadRequest("X-User-Id header is required");
-
-        var alarms = await _alarmService.GetActiveAlarmsAsync(userId);
+        var alarms = await _alarmService.GetActiveAlarmsAsync(userId!);
         return Ok(alarms);
     }
 
     [HttpDelete("{id}")]
+    [ValidateUserId]
     public async Task<IActionResult> DeleteAlarm(
-        [FromHeader(Name = "X-User-Id")] string userId,
+        [FromHeader(Name = "X-User-Id")] string? userId,
         int id)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-            return BadRequest("X-User-Id header is required");
-
-        var deleted = await _alarmService.DeleteAlarmAsync(userId, id);
+        var deleted = await _alarmService.DeleteAlarmAsync(userId!, id);
         if (!deleted)
             return NotFound();
 
@@ -54,15 +49,13 @@ public class AlarmsController : ControllerBase
     }
 
     [HttpPatch("{id}/channels")]
+    [ValidateUserId]
     public async Task<ActionResult<AlarmResponse>> UpdateAlarmChannels(
-        [FromHeader(Name = "X-User-Id")] string userId,
+        [FromHeader(Name = "X-User-Id")] string? userId,
         int id,
         [FromBody] UpdateAlarmChannelsRequest request)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-            return BadRequest("X-User-Id header is required");
-
-        var alarm = await _alarmService.UpdateAlarmChannelsAsync(userId, id, request);
+        var alarm = await _alarmService.UpdateAlarmChannelsAsync(userId!, id, request);
         if (alarm == null)
             return NotFound();
 
@@ -70,25 +63,21 @@ public class AlarmsController : ControllerBase
     }
 
     [HttpGet("triggered")]
+    [ValidateUserId]
     public async Task<ActionResult<List<AlarmResponse>>> GetTriggeredAlarms(
-        [FromHeader(Name = "X-User-Id")] string userId)
+        [FromHeader(Name = "X-User-Id")] string? userId)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-            return BadRequest("X-User-Id header is required");
-
-        var alarms = await _alarmService.GetTriggeredAlarmsAsync(userId);
+        var alarms = await _alarmService.GetTriggeredAlarmsAsync(userId!);
         return Ok(alarms);
     }
 
     [HttpGet("{id}/logs")]
+    [ValidateUserId]
     public async Task<ActionResult<List<NotificationLogResponse>>> GetAlarmLogs(
-        [FromHeader(Name = "X-User-Id")] string userId,
+        [FromHeader(Name = "X-User-Id")] string? userId,
         int id)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-            return BadRequest("X-User-Id header is required");
-
-        var logs = await _alarmService.GetAlarmLogsAsync(userId, id);
+        var logs = await _alarmService.GetAlarmLogsAsync(userId!, id);
         return Ok(logs);
     }
 
