@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cryptoalarm-api
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Database=cryptoalarm;Username=postgres;Password=postgres
+    depends_on:
+      - db
+    networks:
+      - cryptoalarm-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: cryptoalarm-db
+    environment:
+      POSTGRES_DB: cryptoalarm
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cryptoalarm-network
+
+volumes:
+  postgres_data:
+
+networks:
+  cryptoalarm-network:
+    driver: bridge
