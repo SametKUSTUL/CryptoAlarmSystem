@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-CryptoAlarmSystem.NotificationWorker-3b461d21-b18f-4dcf-898b-1fdb5a7e66a4</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CryptoAlarmSystem.Application\CryptoAlarmSystem.Application.csproj" />
+    <ProjectReference Include="..\CryptoAlarmSystem.Infrastructure\CryptoAlarmSystem.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

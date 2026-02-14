@@ -1,3 +1,5 @@
+using CryptoAlarmSystem.Application.Messaging;
+using CryptoAlarmSystem.Application.Models;
 using CryptoAlarmSystem.Application.Interfaces;
 using CryptoAlarmSystem.Domain.Entities;
 using CryptoAlarmSystem.Infrastructure.Data;
@@ -9,11 +11,13 @@ namespace CryptoAlarmSystem.Application.Services;
 public class NotificationService : INotificationService
 {
     private readonly AppDbContext _context;
+    private readonly NotificationPublisher _publisher;
     private readonly ILogger<NotificationService> _logger;
 
-    public NotificationService(AppDbContext context, ILogger<NotificationService> logger)
+    public NotificationService(AppDbContext context, NotificationPublisher publisher, ILogger<NotificationService> logger)
     {
         _context = context;
+        _publisher = publisher;
         _logger = logger;
     }
 
@@ -22,40 +26,27 @@ public class NotificationService : INotificationService
         var channels = await _context.AlarmNotificationChannels
             .Include(anc => anc.NotificationChannel)
             .Where(anc => anc.AlarmId == alarm.Id)
+            .Select(anc => new NotificationChannelInfo(
+                anc.NotificationChannel.Id,
+                anc.NotificationChannel.Code,
+                anc.NotificationChannel.Name
+            ))
             .ToListAsync();
 
-        foreach (var channel in channels)
-        {
-            await SendMockNotificationAsync(alarm, channel.NotificationChannel, currentPrice);
-            await LogNotificationAsync(alarm, channel.NotificationChannel, currentPrice);
-        }
-    }
+        var message = new NotificationMessage(
+            alarm.Id,
+            alarm.UserId,
+            alarm.CryptoSymbol.Code,
+            alarm.CryptoSymbol.Name,
+            alarm.CryptoSymbolId,
+            alarm.AlarmType.Code,
+            alarm.AlarmTypeId,
+            alarm.TargetPrice,
+            currentPrice,
+            channels
+        );
 
-    private async Task SendMockNotificationAsync(Alarm alarm, NotificationChannel channel, decimal currentPrice)
-    {
-        // Mock HTTP request - sadece console'a log
-        _logger.LogInformation(
-            "📧 Notification sent via {Channel}: User={UserId}, Symbol={Symbol}, Type={Type}, Target={Target}, Current={Current}",
-            channel.Code, alarm.UserId, alarm.CryptoSymbol.Code, alarm.AlarmType.Code, alarm.TargetPrice, currentPrice);
-        
-        await Task.CompletedTask;
-    }
-
-    private async Task LogNotificationAsync(Alarm alarm, NotificationChannel channel, decimal currentPrice)
-    {
-        var log = new NotificationLog
-        {
-            AlarmId = alarm.Id,
-            NotificationChannelId = channel.Id,
-            UserId = alarm.UserId,
-            CryptoSymbolId = alarm.CryptoSymbolId,
-            AlarmTypeId = alarm.AlarmTypeId,
-            TargetPrice = alarm.TargetPrice,
-            TriggeredPrice = currentPrice,
-            SentAt = DateTime.UtcNow
-        };
-
-        _context.NotificationLogs.Add(log);
-        await _context.SaveChangesAsync();
+        await _publisher.PublishAsync(message);
+        _logger.LogInformation("Notification queued for AlarmId={AlarmId}", alarm.Id);
     }
 }
