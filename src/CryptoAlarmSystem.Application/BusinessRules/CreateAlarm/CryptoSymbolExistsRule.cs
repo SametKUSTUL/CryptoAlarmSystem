@@ -15,7 +15,7 @@ public class CryptoSymbolExistsRule : IBusinessRule<CreateAlarmRequest>
         _context = context;
     }
 
-    public async Task<Result> ValidateAsync(CreateAlarmRequest request)
+    public async Task<Result> ValidateAsync(CreateAlarmRequest request, string? userId = null)
     {
         var exists = await _context.CryptoSymbols
             .AnyAsync(cs => cs.Id == request.CryptoSymbolId);

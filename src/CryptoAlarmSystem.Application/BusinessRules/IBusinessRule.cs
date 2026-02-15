@@ -4,5 +4,5 @@ namespace CryptoAlarmSystem.Application.BusinessRules;
 
 public interface IBusinessRule<in TRequest>
 {
-    Task<Result> ValidateAsync(TRequest request);
+    Task<Result> ValidateAsync(TRequest request, string? userId = null);
 }

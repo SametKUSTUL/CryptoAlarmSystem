@@ -13,11 +13,11 @@ public class CreateAlarmWorkflow : IWorkflow<CreateAlarmRequest>
         _rules = rules;
     }
 
-    public async Task<Result> ExecuteAsync(CreateAlarmRequest request)
+    public async Task<Result> ExecuteAsync(CreateAlarmRequest request, string? userId = null)
     {
         foreach (var rule in _rules)
         {
-            var result = await rule.ValidateAsync(request);
+            var result = await rule.ValidateAsync(request, userId);
             if (!result.IsSuccess)
             {
                 return result;

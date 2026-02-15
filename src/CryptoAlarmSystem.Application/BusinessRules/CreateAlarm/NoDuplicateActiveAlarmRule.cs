@@ -15,12 +15,29 @@ public class NoDuplicateActiveAlarmRule : IBusinessRule<CreateAlarmRequest>
         _context = context;
     }
 
-    public async Task<Result> ValidateAsync(CreateAlarmRequest request)
+    public async Task<Result> ValidateAsync(CreateAlarmRequest request, string? userId = null)
     {
-        // Request'ten userId'yi almak için bir context gerekiyor
-        // Bu yüzden rule'a userId parametresi eklemeliyiz
-        // Şimdilik bu sorunu çözmek için CreateAlarmRequest'i genişletelim
-        
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Result.Failure(
+                ErrorCode.UserIdCannotBeNullOrEmpty,
+                "User Id Cannot Be Null Or Empty.");
+        }
+
+        var duplicateExists = await _context.Alarms.AnyAsync(a =>
+            a.UserId == userId
+            && a.CryptoSymbolId == request.CryptoSymbolId
+            && a.AlarmTypeId == (int)request.AlarmTypeId
+            && a.TargetPrice == request.TargetPrice
+            && a.Status == AlarmStatus.Active);
+
+        if (duplicateExists)
+        {
+            return Result.Failure(
+                ErrorCode.DuplicateAlarm,
+                "You already have an active alarm for this crypto symbol, alarm type, and target price.");
+        }
+
         return Result.Success();
     }
 }

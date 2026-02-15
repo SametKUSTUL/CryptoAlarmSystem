@@ -22,7 +22,7 @@ public class AlarmService : IAlarmService
     public async Task<Result<AlarmResponse>> CreateAlarmAsync(string userId, CreateAlarmRequest request)
     {
         // Business workflow'u çalıştır
-        var workflowResult = await _createAlarmWorkflow.ExecuteAsync(request);
+        var workflowResult = await _createAlarmWorkflow.ExecuteAsync(request, userId);
         if (!workflowResult.IsSuccess)
         {
             return Result<AlarmResponse>.Failure(workflowResult.ErrorCode, workflowResult.ErrorMessage);
