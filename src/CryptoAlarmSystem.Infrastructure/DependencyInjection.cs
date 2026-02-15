@@ -11,12 +11,19 @@ public static class DependencyInjection
     {
         var useInMemory = configuration["UseInMemoryDatabase"] == "true";
         
+        // Npgsql'e tarihleri olduğu gibi oku/yaz (timezone conversion yapma)
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        
         services.AddDbContext<AppDbContext>(options =>
         {
             if (useInMemory)
+            {
                 options.UseInMemoryDatabase("CryptoAlarmDb");
+            }
             else
+            {
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+            }
         });
         
         return services;

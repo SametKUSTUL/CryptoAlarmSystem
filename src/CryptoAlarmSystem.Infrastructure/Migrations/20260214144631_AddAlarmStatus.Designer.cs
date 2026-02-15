@@ -3,6 +3,7 @@ using System;
 using CryptoAlarmSystem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CryptoAlarmSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260214144631_AddAlarmStatus")]
+    partial class AddAlarmStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,6 +41,9 @@ namespace CryptoAlarmSystem.Infrastructure.Migrations
 
                     b.Property<int>("CryptoSymbolId")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("IsTriggered")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -64,7 +70,7 @@ namespace CryptoAlarmSystem.Infrastructure.Migrations
 
                     b.HasIndex("CryptoSymbolId");
 
-                    b.HasIndex("UserId", "Status");
+                    b.HasIndex("UserId", "Status", "IsTriggered");
 
                     b.ToTable("Alarms");
                 });

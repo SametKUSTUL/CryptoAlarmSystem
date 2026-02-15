@@ -26,7 +26,8 @@ public class AlarmCheckService : IAlarmCheckService
         var activeAlarms = await _context.Alarms
             .Include(a => a.CryptoSymbol)
             .Include(a => a.AlarmType)
-            .Where(a => a.CryptoSymbolId == symbolId && !a.IsTriggered)
+            .Where(a => a.CryptoSymbolId == symbolId 
+                && a.Status == Domain.Enums.AlarmStatus.Active)
             .ToListAsync();
 
         foreach (var alarm in activeAlarms)
@@ -52,7 +53,7 @@ public class AlarmCheckService : IAlarmCheckService
 
     private async Task TriggerAlarmAsync(Domain.Entities.Alarm alarm, decimal currentPrice)
     {
-        alarm.IsTriggered = true;
+        alarm.Status = Domain.Enums.AlarmStatus.Triggered;
         alarm.TriggeredPrice = currentPrice;
         alarm.TriggeredAt = DateTime.UtcNow;
 

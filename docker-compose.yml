@@ -12,6 +12,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=cryptoalarm;Username=postgres;Password=postgres
       - RabbitMQ__Host=rabbitmq
+      - TZ=Europe/Istanbul
     depends_on:
       db:
         condition: service_healthy
@@ -30,6 +31,7 @@ services:
     container_name: cryptoalarm-worker
     environment:
       - ApiSettings__BaseUrl=http://api:8080
+      - TZ=Europe/Istanbul
     depends_on:
       - api
     restart: on-failure
@@ -44,6 +46,7 @@ services:
     environment:
       - ConnectionStrings__DefaultConnection=Host=db;Database=cryptoalarm;Username=postgres;Password=postgres
       - RabbitMQ__Host=rabbitmq
+      - TZ=Europe/Istanbul
     depends_on:
       db:
         condition: service_healthy
@@ -60,6 +63,8 @@ services:
       POSTGRES_DB: cryptoalarm
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      TZ: Europe/Istanbul
+      PGTZ: Europe/Istanbul
     ports:
       - "5432:5432"
     volumes:
