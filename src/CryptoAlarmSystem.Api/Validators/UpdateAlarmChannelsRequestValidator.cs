@@ -8,7 +8,10 @@ public class UpdateAlarmChannelsRequestValidator : AbstractValidator<UpdateAlarm
     public UpdateAlarmChannelsRequestValidator()
     {
         RuleFor(x => x.NotificationChannelIds)
-            .NotEmpty().WithMessage("At least one notification channel is required")
-            .Must(x => x.All(id => id > 0)).WithMessage("All notification channel IDs must be greater than 0");
+            .NotEmpty()
+            .WithMessage("At least one notification channel must be selected");
+        
+        RuleForEach(x => x.NotificationChannelIds)
+            .IsInEnum().WithMessage("All notification channel IDs must be valid (Email=1, Sms=2, PushNotification=3)");
     }
 }

@@ -1,14 +1,16 @@
+using CryptoAlarmSystem.Domain.Enums;
+
 namespace CryptoAlarmSystem.Application.DTOs;
 
 public record CreateAlarmRequest(
     int CryptoSymbolId,
-    int AlarmTypeId,
+    AlarmTypes AlarmTypeId,
     decimal TargetPrice,
-    List<int> NotificationChannelIds
+    List<NotificationChannels> NotificationChannelIds
 );
 
 public record UpdateAlarmChannelsRequest(
-    List<int> NotificationChannelIds
+    List<NotificationChannels> NotificationChannelIds
 );
 
 public record AlarmResponse(
@@ -21,7 +23,7 @@ public record AlarmResponse(
     string AlarmTypeCode,
     string AlarmTypeName,
     decimal TargetPrice,
-    bool IsTriggered,
+    string Status,
     decimal? TriggeredPrice,
     DateTime? TriggeredAt,
     DateTime CreatedAt,
@@ -31,7 +33,8 @@ public record AlarmResponse(
 public record NotificationChannelDto(
     int Id,
     string Code,
-    string Name
+    string Name,
+    DateTime? SentAt
 );
 
 public record NotificationLogResponse(

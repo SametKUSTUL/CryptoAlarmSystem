@@ -1,6 +1,10 @@
 FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 WORKDIR /app
 
+# Timezone ayarı - Türkiye saati
+ENV TZ=Europe/Istanbul
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["src/CryptoAlarmSystem.PriceWorker/CryptoAlarmSystem.PriceWorker.csproj", "CryptoAlarmSystem.PriceWorker/"]

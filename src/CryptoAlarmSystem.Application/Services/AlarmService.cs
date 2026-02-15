@@ -21,22 +21,17 @@ public class AlarmService : IAlarmService
         {
             UserId = userId,
             CryptoSymbolId = request.CryptoSymbolId,
-            AlarmTypeId = request.AlarmTypeId,
+            AlarmTypeId = request.AlarmTypeId.GetHashCode(),
             TargetPrice = request.TargetPrice,
-            IsTriggered = false,
-            CreatedAt = DateTime.UtcNow
+            Status = Domain.Enums.AlarmStatus.Active,
+            CreatedAt = DateTime.UtcNow,
+            AlarmNotificationChannels = request.NotificationChannelIds.Select(channelId => new AlarmNotificationChannel
+            {
+                NotificationChannelId = channelId.GetHashCode()
+            }).ToList()
         };
 
         _context.Alarms.Add(alarm);
-        await _context.SaveChangesAsync();
-
-        var alarmChannels = request.NotificationChannelIds.Select(channelId => new AlarmNotificationChannel
-        {
-            AlarmId = alarm.Id,
-            NotificationChannelId = channelId
-        }).ToList();
-
-        _context.AlarmNotificationChannels.AddRange(alarmChannels);
         await _context.SaveChangesAsync();
 
         return await GetAlarmByIdAsync(alarm.Id);
@@ -49,7 +44,8 @@ public class AlarmService : IAlarmService
             .Include(a => a.AlarmType)
             .Include(a => a.AlarmNotificationChannels)
                 .ThenInclude(anc => anc.NotificationChannel)
-            .Where(a => a.UserId == userId && !a.IsTriggered)
+            .Where(a => a.UserId == userId 
+                && a.Status == Domain.Enums.AlarmStatus.Active)
             .ToListAsync();
 
         return alarms.Select(MapToAlarmResponse).ToList();
@@ -58,12 +54,14 @@ public class AlarmService : IAlarmService
     public async Task<bool> DeleteAlarmAsync(string userId, int alarmId)
     {
         var alarm = await _context.Alarms
-            .FirstOrDefaultAsync(a => a.Id == alarmId && a.UserId == userId && !a.IsTriggered);
+            .FirstOrDefaultAsync(a => a.Id == alarmId 
+                && a.UserId == userId 
+                && a.Status == Domain.Enums.AlarmStatus.Active);
 
         if (alarm == null)
             return false;
 
-        _context.Alarms.Remove(alarm);
+        alarm.Status = Domain.Enums.AlarmStatus.Deleted;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -72,7 +70,9 @@ public class AlarmService : IAlarmService
     {
         var alarm = await _context.Alarms
             .Include(a => a.AlarmNotificationChannels)
-            .FirstOrDefaultAsync(a => a.Id == alarmId && a.UserId == userId && !a.IsTriggered);
+            .FirstOrDefaultAsync(a => a.Id == alarmId 
+                && a.UserId == userId 
+                && a.Status == Domain.Enums.AlarmStatus.Active);
 
         if (alarm == null)
             return null;
@@ -82,7 +82,7 @@ public class AlarmService : IAlarmService
         var newChannels = request.NotificationChannelIds.Select(channelId => new AlarmNotificationChannel
         {
             AlarmId = alarmId,
-            NotificationChannelId = channelId
+            NotificationChannelId = channelId.GetHashCode()
         }).ToList();
 
         _context.AlarmNotificationChannels.AddRange(newChannels);
@@ -98,16 +98,20 @@ public class AlarmService : IAlarmService
             .Include(a => a.AlarmType)
             .Include(a => a.AlarmNotificationChannels)
                 .ThenInclude(anc => anc.NotificationChannel)
-            .Where(a => a.UserId == userId && a.IsTriggered)
+            .Include(a => a.NotificationLogs)
+            .Where(a => a.UserId == userId 
+                && a.Status == Domain.Enums.AlarmStatus.Triggered)
             .ToListAsync();
 
-        return alarms.Select(MapToAlarmResponse).ToList();
+        return alarms.Select(alarm => MapToTriggeredAlarmResponse(alarm)).ToList();
     }
 
     public async Task<List<NotificationLogResponse>> GetAlarmLogsAsync(string userId, int alarmId)
     {
         var alarm = await _context.Alarms
-            .FirstOrDefaultAsync(a => a.Id == alarmId && a.UserId == userId);
+            .FirstOrDefaultAsync(a => a.Id == alarmId 
+                && a.UserId == userId
+                && a.Status == Domain.Enums.AlarmStatus.Triggered);
 
         if (alarm == null)
             return new List<NotificationLogResponse>();
@@ -141,7 +145,7 @@ public class AlarmService : IAlarmService
     public async Task<List<NotificationChannelDto>> GetNotificationChannelsAsync()
     {
         return await _context.NotificationChannels
-            .Select(nc => new NotificationChannelDto(nc.Id, nc.Code, nc.Name))
+            .Select(nc => new NotificationChannelDto(nc.Id, nc.Code, nc.Name, null))
             .ToListAsync();
     }
 
@@ -176,14 +180,44 @@ public class AlarmService : IAlarmService
             alarm.AlarmType.Code,
             alarm.AlarmType.Name,
             alarm.TargetPrice,
-            alarm.IsTriggered,
+            alarm.Status.ToString(),
             alarm.TriggeredPrice,
             alarm.TriggeredAt,
             alarm.CreatedAt,
             alarm.AlarmNotificationChannels.Select(anc => new NotificationChannelDto(
                 anc.NotificationChannel.Id,
                 anc.NotificationChannel.Code,
-                anc.NotificationChannel.Name
+                anc.NotificationChannel.Name,
+                null
+            )).ToList()
+        );
+    }
+
+    private static AlarmResponse MapToTriggeredAlarmResponse(Alarm alarm)
+    {
+        return new AlarmResponse(
+            alarm.Id,
+            alarm.UserId,
+            alarm.CryptoSymbolId,
+            alarm.CryptoSymbol.Code,
+            alarm.CryptoSymbol.Name,
+            alarm.AlarmTypeId,
+            alarm.AlarmType.Code,
+            alarm.AlarmType.Name,
+            alarm.TargetPrice,
+            alarm.Status.ToString(),
+            alarm.TriggeredPrice,
+            alarm.TriggeredAt,
+            alarm.CreatedAt,
+            alarm.AlarmNotificationChannels.Select(anc => new NotificationChannelDto(
+                anc.NotificationChannel.Id,
+                anc.NotificationChannel.Code,
+                anc.NotificationChannel.Name,
+                alarm.NotificationLogs
+                    .Where(nl => nl.NotificationChannelId == anc.NotificationChannelId)
+                    .OrderByDescending(nl => nl.SentAt)
+                    .Select(nl => nl.SentAt)
+                    .FirstOrDefault()
             )).ToList()
         );
     }

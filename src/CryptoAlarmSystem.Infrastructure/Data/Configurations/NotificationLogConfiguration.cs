@@ -13,6 +13,10 @@ public class NotificationLogConfiguration : IEntityTypeConfiguration<Notificatio
         builder.Property(x => x.TargetPrice).HasPrecision(18, 8);
         builder.Property(x => x.TriggeredPrice).HasPrecision(18, 8);
         
+        // SentAt'i timestamp without time zone olarak ayarla
+        builder.Property(x => x.SentAt)
+            .HasColumnType("timestamp without time zone");
+        
         builder.HasOne(x => x.Alarm)
             .WithMany(x => x.NotificationLogs)
             .HasForeignKey(x => x.AlarmId)

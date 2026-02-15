@@ -9,6 +9,12 @@ public static class DbInitializer
     {
         await context.Database.EnsureCreatedAsync();
         
+        // PostgreSQL timezone'u Türkiye saatine ayarla
+        if (context.Database.IsNpgsql())
+        {
+            await context.Database.ExecuteSqlRawAsync("SET TIME ZONE 'Europe/Istanbul';");
+        }
+        
         var existingSymbols = await context.CryptoSymbols.Select(s => s.Code).ToListAsync();
         var newSymbols = new[]
         {

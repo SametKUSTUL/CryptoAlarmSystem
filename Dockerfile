@@ -2,6 +2,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
+# Timezone ayarı - Türkiye saati
+ENV TZ=Europe/Istanbul
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["src/CryptoAlarmSystem.Api/CryptoAlarmSystem.Api.csproj", "CryptoAlarmSystem.Api/"]
