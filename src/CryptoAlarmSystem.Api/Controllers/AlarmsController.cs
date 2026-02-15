@@ -24,8 +24,18 @@ public class AlarmsController : ControllerBase
         [FromHeader(Name = "X-User-Id")] string? userId,
         [FromBody] CreateAlarmRequest request)
     {
-        var alarm = await _alarmService.CreateAlarmAsync(userId!, request);
-        return CreatedAtAction(nameof(GetAlarmLogs), new { id = alarm.Id }, alarm);
+        var result = await _alarmService.CreateAlarmAsync(userId!, request);
+        
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new 
+            { 
+                errorCode = result.ErrorCode.ToString(),
+                errorMessage = result.ErrorMessage 
+            });
+        }
+        
+        return CreatedAtAction(nameof(GetAlarmLogs), new { id = result.Data!.Id }, result.Data);
     }
 
     [HttpGet("active")]

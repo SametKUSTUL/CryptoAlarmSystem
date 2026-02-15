@@ -1,5 +1,7 @@
 using CryptoAlarmSystem.Application.DTOs;
 using CryptoAlarmSystem.Application.Interfaces;
+using CryptoAlarmSystem.Application.Workflows;
+using CryptoAlarmSystem.Domain.Common;
 using CryptoAlarmSystem.Domain.Entities;
 using CryptoAlarmSystem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -9,14 +11,24 @@ namespace CryptoAlarmSystem.Application.Services;
 public class AlarmService : IAlarmService
 {
     private readonly AppDbContext _context;
+    private readonly IWorkflow<CreateAlarmRequest> _createAlarmWorkflow;
 
-    public AlarmService(AppDbContext context)
+    public AlarmService(AppDbContext context, IWorkflow<CreateAlarmRequest> createAlarmWorkflow)
     {
         _context = context;
+        _createAlarmWorkflow = createAlarmWorkflow;
     }
 
-    public async Task<AlarmResponse> CreateAlarmAsync(string userId, CreateAlarmRequest request)
+    public async Task<Result<AlarmResponse>> CreateAlarmAsync(string userId, CreateAlarmRequest request)
     {
+        // Business workflow'u çalıştır
+        var workflowResult = await _createAlarmWorkflow.ExecuteAsync(request, userId);
+        if (!workflowResult.IsSuccess)
+        {
+            return Result<AlarmResponse>.Failure(workflowResult.ErrorCode, workflowResult.ErrorMessage);
+        }
+
+        // Workflow başarılı, alarm'ı oluştur
         var alarm = new Alarm
         {
             UserId = userId,
@@ -34,7 +46,8 @@ public class AlarmService : IAlarmService
         _context.Alarms.Add(alarm);
         await _context.SaveChangesAsync();
 
-        return await GetAlarmByIdAsync(alarm.Id);
+        var alarmResponse = await GetAlarmByIdAsync(alarm.Id);
+        return Result<AlarmResponse>.Success(alarmResponse);
     }
 
     public async Task<List<AlarmResponse>> GetActiveAlarmsAsync(string userId)
