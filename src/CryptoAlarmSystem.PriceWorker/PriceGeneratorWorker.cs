@@ -78,7 +78,7 @@ public class PriceGeneratorWorker : BackgroundService
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await httpClient.PostAsync("/api/prices/update", content);
+            var response = await httpClient.PostAsync("/api/v1/prices/update", content);
             
             if (!response.IsSuccessStatusCode)
             {
