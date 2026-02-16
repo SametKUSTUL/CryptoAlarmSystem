@@ -1,4 +1,4 @@
-using CryptoAlarmSystem.Api.Controllers;
+using CryptoAlarmSystem.Api.Controllers.V1;
 using FluentValidation;
 
 namespace CryptoAlarmSystem.Api.Validators;
