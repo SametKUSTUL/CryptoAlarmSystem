@@ -60,7 +60,7 @@ public class AlarmCheckService : IAlarmCheckService
         await _notificationService.SendNotificationsAsync(alarm, currentPrice);
 
         _logger.LogWarning(
-            "🔔 Alarm triggered! User={UserId}, Symbol={Symbol}, Type={Type}, Target={Target}, Current={Current}",
+            "Alarm triggered! User={UserId}, Symbol={Symbol}, Type={Type}, Target={Target}, Current={Current}",
             alarm.UserId, alarm.CryptoSymbol.Code, alarm.AlarmType.Code, alarm.TargetPrice, currentPrice);
     }
 }
