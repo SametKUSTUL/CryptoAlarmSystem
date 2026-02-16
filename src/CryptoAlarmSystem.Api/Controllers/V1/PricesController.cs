@@ -1,10 +1,12 @@
+using Asp.Versioning;
 using CryptoAlarmSystem.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CryptoAlarmSystem.Api.Controllers;
+namespace CryptoAlarmSystem.Api.Controllers.V1;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Produces("application/json")]
 public class PricesController : ControllerBase
 {
