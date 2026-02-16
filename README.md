@@ -147,6 +147,14 @@ Proje **Clean Architecture** prensiplerine göre tasarlanmıştır ve 6 ana katm
 - Result Pattern (Error handling)
 - Repository Pattern (EF Core DbContext)
 
+### API & Performance
+- API Versioning (v1)
+- FluentValidation for request validation
+- Pagination support for list endpoints
+- Query splitting for optimal EF Core performance
+- Structured logging with NLog
+- Health check endpoints
+
 ## ✨ Özellikler
 
 ### Alarm Yönetimi
@@ -176,12 +184,14 @@ Proje **Clean Architecture** prensiplerine göre tasarlanmıştır ve 6 ana katm
 
 ### Bildirim Sistemi
 - Çoklu kanal desteği:
-  - 📧 Email
-  - 📱 SMS
-  - 🔔 Push Notification
+  - 📧 Email - HTTP API ile gerçek email servisi entegrasyonu
+  - 📱 SMS - HTTP API ile gerçek SMS servisi entegrasyonu
+  - 🔔 Push Notification - HTTP API ile gerçek push servisi entegrasyonu
 - Asenkron işleme (RabbitMQ)
+- Her bildirim kanalı için ayrı HTTP istekleri
 - Bildirim geçmişi ve audit trail
 - Extensible strategy pattern
+- Configurable notification service endpoints (appsettings.json)
 
 ### Business Rules
 - Kripto sembol varlık kontrolü
@@ -245,8 +255,10 @@ Response:
 
 ### Base URL
 ```
-http://localhost:8080/api
+http://localhost:8080/api/v1
 ```
+
+Tüm endpoint'ler API versiyonlama kullanır. Mevcut versiyon: `v1`
 
 ### Authentication
 Tüm kullanıcı bazlı endpoint'ler `X-User-Id` header'ı gerektirir:
@@ -283,7 +295,7 @@ Detaylı bilgi için: [PAGINATION.md](src/CryptoAlarmSystem.Api/PAGINATION.md)
 
 #### 1. Alarm Oluşturma
 ```http
-POST /api/alarms
+POST /api/v1/alarms
 X-User-Id: user123
 Content-Type: application/json
 
@@ -330,7 +342,7 @@ Response (201 Created):
 
 #### 2. Aktif Alarmları Listeleme (Pagination Destekli)
 ```http
-GET /api/alarms/active?pageNumber=1&pageSize=20
+GET /api/v1/alarms/active?pageNumber=1&pageSize=20
 X-User-Id: user123
 ```
 
@@ -361,19 +373,19 @@ Response:
 
 #### 3. Tetiklenen Alarmları Listeleme (Pagination Destekli)
 ```http
-GET /api/alarms/triggered?pageNumber=1&pageSize=10
+GET /api/v1/alarms/triggered?pageNumber=1&pageSize=10
 X-User-Id: user123
 ```
 
 #### 4. Alarm Silme
 ```http
-DELETE /api/alarms/{id}
+DELETE /api/v1/alarms/{id}
 X-User-Id: user123
 ```
 
 #### 5. Bildirim Kanallarını Güncelleme
 ```http
-PATCH /api/alarms/{id}/channels
+PATCH /api/v1/alarms/{id}/channels
 X-User-Id: user123
 Content-Type: application/json
 
@@ -384,13 +396,13 @@ Content-Type: application/json
 
 #### 6. Alarm Bildirim Logları (Pagination Destekli)
 ```http
-GET /api/alarms/{id}/logs?pageNumber=1&pageSize=50
+GET /api/v1/alarms/{id}/logs?pageNumber=1&pageSize=50
 X-User-Id: user123
 ```
 
 #### 7. Kripto Sembolleri Listeleme
 ```http
-GET /api/alarms/crypto-symbols
+GET /api/v1/alarms/crypto-symbols
 ```
 
 Response:
@@ -411,12 +423,12 @@ Response:
 
 #### 8. Bildirim Kanalları Listeleme
 ```http
-GET /api/alarms/notification-channels
+GET /api/v1/alarms/notification-channels
 ```
 
 #### 9. Alarm Tipleri Listeleme
 ```http
-GET /api/alarms/alarm-types
+GET /api/v1/alarms/alarm-types
 ```
 
 ### Validation Rules
@@ -442,7 +454,7 @@ GET /api/alarms/alarm-types
        │ 9 kripto için fiyat üret
        ▼
 ┌─────────────────────────────┐
-│ POST /api/prices/update     │
+│ POST /api/v1/prices/update  │
 │ { symbolId: 1, price: 45500 }│
 └──────────┬──────────────────┘
            │
@@ -496,7 +508,8 @@ GET /api/alarms/alarm-types
            ▼                      ▼                      ▼
 ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
 │ EmailStrategy    │  │ SmsStrategy      │  │ PushStrategy     │
-│ - Email gönder   │  │ - SMS gönder     │  │ - Push gönder    │
+│ - HTTP POST      │  │ - HTTP POST      │  │ - HTTP POST      │
+│ - Email API      │  │ - SMS API        │  │ - Push API       │
 └──────────────────┘  └──────────────────┘  └──────────────────┘
            │                      │                      │
            └──────────────────────┴──────────────────────┘
@@ -666,8 +679,16 @@ TZ=Europe/Istanbul
 ```env
 ConnectionStrings__DefaultConnection=Host=db;Database=cryptoalarm;Username=postgres;Password=postgres
 RabbitMQ__Host=rabbitmq
+NotificationServices__Email__Url=https://api.emailservice.com/send
+NotificationServices__Email__ApiKey=your-email-api-key
+NotificationServices__Sms__Url=https://api.smsservice.com/send
+NotificationServices__Sms__ApiKey=your-sms-api-key
+NotificationServices__Push__Url=https://api.pushservice.com/send
+NotificationServices__Push__ApiKey=your-push-api-key
 TZ=Europe/Istanbul
 ```
+
+**Not:** Bildirim servisleri için gerçek API URL'leri ve API key'leri `appsettings.json` veya environment variables ile yapılandırılmalıdır.
 
 ### Database Connection String
 ```
@@ -715,12 +736,12 @@ Host=db;Database=cryptoalarm;Username=postgres;Password=postgres
 
 1. **Kripto sembolleri listele**:
 ```bash
-curl http://localhost:8080/api/alarms/crypto-symbols
+curl http://localhost:8080/api/v1/alarms/crypto-symbols
 ```
 
 2. **Alarm oluştur** (BTC $45,000 üzerine çıkarsa):
 ```bash
-curl -X POST http://localhost:8080/api/alarms \
+curl -X POST http://localhost:8080/api/v1/alarms \
   -H "Content-Type: application/json" \
   -H "X-User-Id: test-user" \
   -d '{
@@ -733,7 +754,7 @@ curl -X POST http://localhost:8080/api/alarms \
 
 3. **Aktif alarmları kontrol et**:
 ```bash
-curl http://localhost:8080/api/alarms/active \
+curl http://localhost:8080/api/v1/alarms/active \
   -H "X-User-Id: test-user"
 ```
 
@@ -744,7 +765,7 @@ docker logs -f cryptoalarm-priceworker
 
 5. **Alarm tetiklendiğinde bildirim loglarını kontrol et**:
 ```bash
-curl http://localhost:8080/api/alarms/1/logs \
+curl http://localhost:8080/api/v1/alarms/1/logs \
   -H "X-User-Id: test-user"
 ```
 
@@ -801,6 +822,8 @@ curl http://localhost:8080/health
 6. Database backup stratejisi oluşturun
 7. Monitoring ve alerting ekleyin (Prometheus, Grafana)
 8. Log retention policy belirleyin
+9. Notification service API credentials'ı güvenli şekilde saklayın
+10. Gerçek kripto fiyat API'si entegre edin (CoinGecko, Binance API)
 
 ### Docker Compose Production
 ```yaml
@@ -812,6 +835,17 @@ environment:
   - RabbitMQ__Username=${RABBITMQ_USER}
   - RabbitMQ__Password=${RABBITMQ_PASS}
 ```
+
+## 🔄 Son Güncellemeler
+
+### v1.1.0 (Şubat 2026)
+- ✅ API versiyonlama eklendi (v1)
+- ✅ Bildirim stratejileri gerçek HTTP API çağrıları yapacak şekilde güncellendi
+- ✅ Email, SMS ve Push notification servisleri için HTTP client entegrasyonu
+- ✅ Notification service konfigürasyonu appsettings.json'a eklendi
+- ✅ Entity Framework query splitting performans optimizasyonu
+- ✅ PriceWorker URL'i versiyonlu endpoint'e güncellendi (/api/v1/prices/update)
+- ✅ Tüm API endpoint'leri /api/v1 prefix'i ile standartlaştırıldı
 
 ## 📝 License
 
@@ -827,4 +861,8 @@ Sorularınız için issue açabilirsiniz.
 
 ---
 
-**Not**: Bu sistem demo amaçlıdır. PriceWorker rastgele fiyatlar üretir. Production kullanımı için gerçek kripto fiyat API'si entegre edilmelidir (örn: CoinGecko, Binance API).
+**Önemli Notlar:**
+- Bu sistem demo amaçlıdır. PriceWorker rastgele fiyatlar üretir.
+- Production kullanımı için gerçek kripto fiyat API'si entegre edilmelidir (örn: CoinGecko, Binance API).
+- Bildirim servisleri için gerçek API endpoint'leri ve credentials yapılandırılmalıdır.
+- Notification service URL'leri ve API key'leri placeholder değerlerdir, gerçek servislerle değiştirilmelidir.
