@@ -289,7 +289,7 @@ Pagination response formatı:
 }
 ```
 
-Detaylı bilgi için: [PAGINATION.md](src/CryptoAlarmSystem.Api/PAGINATION.md)
+Detaylı bilgi için: [PAGINATION.md](PAGINATION.md)
 
 ### Endpoints
 
