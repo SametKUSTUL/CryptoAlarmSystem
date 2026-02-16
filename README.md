@@ -254,6 +254,31 @@ Tüm kullanıcı bazlı endpoint'ler `X-User-Id` header'ı gerektirir:
 X-User-Id: user123
 ```
 
+### Pagination
+Liste dönen endpoint'ler otomatik pagination desteği sunar. Query parametreleri:
+- `pageNumber`: Sayfa numarası (varsayılan: 1)
+- `pageSize`: Sayfa başına kayıt sayısı (varsayılan: 10, maksimum: 100)
+
+Örnek:
+```http
+GET /api/alarms/active?pageNumber=1&pageSize=20
+```
+
+Pagination response formatı:
+```json
+{
+  "data": [...],
+  "pageNumber": 1,
+  "pageSize": 20,
+  "totalRecords": 45,
+  "totalPages": 3,
+  "hasNextPage": true,
+  "hasPreviousPage": false
+}
+```
+
+Detaylı bilgi için: [PAGINATION.md](src/CryptoAlarmSystem.Api/PAGINATION.md)
+
 ### Endpoints
 
 #### 1. Alarm Oluşturma
@@ -303,15 +328,40 @@ Response (201 Created):
 }
 ```
 
-#### 2. Aktif Alarmları Listeleme
+#### 2. Aktif Alarmları Listeleme (Pagination Destekli)
 ```http
-GET /api/alarms/active
+GET /api/alarms/active?pageNumber=1&pageSize=20
 X-User-Id: user123
 ```
 
-#### 3. Tetiklenen Alarmları Listeleme
+Response:
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "userId": "user123",
+      "cryptoSymbol": {
+        "id": 1,
+        "code": "BTC",
+        "name": "Bitcoin"
+      },
+      "targetPrice": 45000.00,
+      "status": "Active"
+    }
+  ],
+  "pageNumber": 1,
+  "pageSize": 20,
+  "totalRecords": 45,
+  "totalPages": 3,
+  "hasNextPage": true,
+  "hasPreviousPage": false
+}
+```
+
+#### 3. Tetiklenen Alarmları Listeleme (Pagination Destekli)
 ```http
-GET /api/alarms/triggered
+GET /api/alarms/triggered?pageNumber=1&pageSize=10
 X-User-Id: user123
 ```
 
@@ -332,9 +382,9 @@ Content-Type: application/json
 }
 ```
 
-#### 6. Alarm Bildirim Logları
+#### 6. Alarm Bildirim Logları (Pagination Destekli)
 ```http
-GET /api/alarms/{id}/logs
+GET /api/alarms/{id}/logs?pageNumber=1&pageSize=50
 X-User-Id: user123
 ```
 

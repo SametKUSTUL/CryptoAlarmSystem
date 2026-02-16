@@ -1,5 +1,7 @@
 using Asp.Versioning;
+using CryptoAlarmSystem.Api.Extensions;
 using CryptoAlarmSystem.Api.Filters;
+using CryptoAlarmSystem.Api.Models;
 using CryptoAlarmSystem.Application.DTOs;
 using CryptoAlarmSystem.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -42,13 +44,18 @@ public class AlarmsController : ControllerBase
 
     [HttpGet("active")]
     [ValidateUserId]
-    [ProducesResponseType(typeof(List<AlarmResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<AlarmResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<AlarmResponse>>> GetActiveAlarms(
-        [FromHeader(Name = "X-User-Id")] string? userId)
+    public async Task<ActionResult<PagedResponse<AlarmResponse>>> GetActiveAlarms(
+        [FromHeader(Name = "X-User-Id")] string? userId,
+        [FromQuery] PaginationRequest pagination)
     {
-        var alarms = await _alarmService.GetActiveAlarmsAsync(userId!);
-        return Ok(alarms);
+        var allAlarms = await _alarmService.GetActiveAlarmsAsync(userId!);
+        var totalRecords = allAlarms.Count;
+        var pagedAlarms = allAlarms.ApplyPagination(pagination);
+        
+        var response = pagedAlarms.ToPagedResponse(pagination.PageNumber, pagination.PageSize, totalRecords);
+        return Ok(response);
     }
 
     [HttpDelete("{id}")]
@@ -86,25 +93,35 @@ public class AlarmsController : ControllerBase
 
     [HttpGet("triggered")]
     [ValidateUserId]
-    [ProducesResponseType(typeof(List<AlarmResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<AlarmResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<AlarmResponse>>> GetTriggeredAlarms(
-        [FromHeader(Name = "X-User-Id")] string? userId)
+    public async Task<ActionResult<PagedResponse<AlarmResponse>>> GetTriggeredAlarms(
+        [FromHeader(Name = "X-User-Id")] string? userId,
+        [FromQuery] PaginationRequest pagination)
     {
-        var alarms = await _alarmService.GetTriggeredAlarmsAsync(userId!);
-        return Ok(alarms);
+        var allAlarms = await _alarmService.GetTriggeredAlarmsAsync(userId!);
+        var totalRecords = allAlarms.Count;
+        var pagedAlarms = allAlarms.ApplyPagination(pagination);
+        
+        var response = pagedAlarms.ToPagedResponse(pagination.PageNumber, pagination.PageSize, totalRecords);
+        return Ok(response);
     }
 
     [HttpGet("{id}/logs")]
     [ValidateUserId]
-    [ProducesResponseType(typeof(List<NotificationLogResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<NotificationLogResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<NotificationLogResponse>>> GetAlarmLogs(
+    public async Task<ActionResult<PagedResponse<NotificationLogResponse>>> GetAlarmLogs(
         [FromHeader(Name = "X-User-Id")] string? userId,
-        int id)
+        int id,
+        [FromQuery] PaginationRequest pagination)
     {
-        var logs = await _alarmService.GetAlarmLogsAsync(userId!, id);
-        return Ok(logs);
+        var allLogs = await _alarmService.GetAlarmLogsAsync(userId!, id);
+        var totalRecords = allLogs.Count;
+        var pagedLogs = allLogs.ApplyPagination(pagination);
+        
+        var response = pagedLogs.ToPagedResponse(pagination.PageNumber, pagination.PageSize, totalRecords);
+        return Ok(response);
     }
 
     [HttpGet("crypto-symbols")]
