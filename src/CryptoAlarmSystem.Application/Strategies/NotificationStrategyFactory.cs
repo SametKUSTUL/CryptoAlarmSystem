@@ -1,3 +1,4 @@
+using CryptoAlarmSystem.Domain.Enums;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CryptoAlarmSystem.Application.Strategies;
@@ -11,13 +12,17 @@ public class NotificationStrategyFactory
         _serviceProvider = serviceProvider;
     }
 
-    public INotificationStrategy GetStrategy(string channelCode)
+    public INotificationStrategy GetStrategy(int channelCode)
     {
-        return channelCode switch
+        if (!Enum.IsDefined(typeof(NotificationChannels), channelCode))
         {
-            "EMAIL" => _serviceProvider.GetRequiredService<EmailNotificationStrategy>(),
-            "SMS" => _serviceProvider.GetRequiredService<SmsNotificationStrategy>(),
-            "PUSH" => _serviceProvider.GetRequiredService<PushNotificationStrategy>(),
+            throw new ArgumentException($"Invalid channel code: {channelCode}", nameof(channelCode));
+        }
+        return (NotificationChannels)channelCode switch
+        {
+            NotificationChannels.Email => _serviceProvider.GetRequiredService<EmailNotificationStrategy>(),
+            NotificationChannels.Sms=> _serviceProvider.GetRequiredService<SmsNotificationStrategy>(),
+            NotificationChannels.PushNotification => _serviceProvider.GetRequiredService<PushNotificationStrategy>(),
             _ => throw new NotSupportedException($"Channel {channelCode} not supported")
         };
     }
