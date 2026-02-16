@@ -12,6 +12,8 @@ builder.Logging.AddNLog();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddHttpClient();
+
 builder.Services.AddSingleton<IConnection>(sp =>
 {
     var factory = new ConnectionFactory { HostName = builder.Configuration["RabbitMQ:Host"] ?? "localhost" };

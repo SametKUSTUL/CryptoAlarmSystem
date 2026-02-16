@@ -72,7 +72,7 @@ public class NotificationConsumer : BackgroundService
 
         foreach (var channel in message.Channels)
         {
-            var strategy = factory.GetStrategy(channel.Code);
+            var strategy = factory.GetStrategy(channel.Id);
             await strategy.SendAsync(message);
             await LogNotificationAsync(context, message, channel);
         }
