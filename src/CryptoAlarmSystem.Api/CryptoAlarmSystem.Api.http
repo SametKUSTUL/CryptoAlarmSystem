@@ -1,6 +1,110 @@
 @CryptoAlarmSystem.Api_HostAddress = http://localhost:5135
+@userId = user123
 
-GET {{CryptoAlarmSystem.Api_HostAddress}}/weatherforecast/
+### Health Check
+GET {{CryptoAlarmSystem.Api_HostAddress}}/health
 Accept: application/json
+
+###
+
+### Get Active Alarms (Default Pagination)
+GET {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms/active
+X-User-Id: {{userId}}
+Accept: application/json
+
+###
+
+### Get Active Alarms (Custom Pagination)
+GET {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms/active?pageNumber=1&pageSize=20
+X-User-Id: {{userId}}
+Accept: application/json
+
+###
+
+### Get Triggered Alarms (Default Pagination)
+GET {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms/triggered
+X-User-Id: {{userId}}
+Accept: application/json
+
+###
+
+### Get Triggered Alarms (Page 2)
+GET {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms/triggered?pageNumber=2&pageSize=10
+X-User-Id: {{userId}}
+Accept: application/json
+
+###
+
+### Get Alarm Logs (Default Pagination)
+GET {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms/1/logs
+X-User-Id: {{userId}}
+Accept: application/json
+
+###
+
+### Get Alarm Logs (Custom Pagination)
+GET {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms/1/logs?pageNumber=1&pageSize=50
+X-User-Id: {{userId}}
+Accept: application/json
+
+###
+
+### Get Crypto Symbols
+GET {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms/crypto-symbols
+Accept: application/json
+
+###
+
+### Get Notification Channels
+GET {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms/notification-channels
+Accept: application/json
+
+###
+
+### Get Alarm Types
+GET {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms/alarm-types
+Accept: application/json
+
+###
+
+### Create Alarm
+POST {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms
+X-User-Id: {{userId}}
+Content-Type: application/json
+
+{
+  "cryptoSymbolId": 1,
+  "targetPrice": 50000.00,
+  "alarmTypeId": 1,
+  "notificationChannelIds": [1, 2]
+}
+
+###
+
+### Update Alarm Channels
+PATCH {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms/1/channels
+X-User-Id: {{userId}}
+Content-Type: application/json
+
+{
+  "notificationChannelIds": [1, 3]
+}
+
+###
+
+### Delete Alarm
+DELETE {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/alarms/1
+X-User-Id: {{userId}}
+
+###
+
+### Update Price (Worker Service)
+POST {{CryptoAlarmSystem.Api_HostAddress}}/api/v1/prices/update
+Content-Type: application/json
+
+{
+  "cryptoSymbolId": 1,
+  "price": 51000.00
+}
 
 ###
