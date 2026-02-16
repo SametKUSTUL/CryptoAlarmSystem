@@ -6,6 +6,9 @@ EXPOSE 8080
 ENV TZ=Europe/Istanbul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+# curl kurulumu (healthcheck için)
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["src/CryptoAlarmSystem.Api/CryptoAlarmSystem.Api.csproj", "CryptoAlarmSystem.Api/"]

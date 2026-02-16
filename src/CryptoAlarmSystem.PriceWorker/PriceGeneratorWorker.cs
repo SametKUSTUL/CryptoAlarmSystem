@@ -34,15 +34,7 @@ public class PriceGeneratorWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Price Generator Worker started");
-        
-        if (!await WaitForApiAsync(stoppingToken))
-        {
-            _logger.LogError("Failed to connect to API after multiple attempts. Shutting down.");
-            return;
-        }
-        
-        _logger.LogInformation("API is ready. Starting price generation...");
+        _logger.LogInformation("Price Generator Worker started. API is ready.");
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -58,40 +50,6 @@ public class PriceGeneratorWorker : BackgroundService
         }
     }
 
-    private async Task<bool> WaitForApiAsync(CancellationToken stoppingToken)
-    {
-        var delays = new[] { 5, 10, 15 };
-        var httpClient = _httpClientFactory.CreateClient("ApiClient");
-
-        for (int attempt = 0; attempt < delays.Length; attempt++)
-        {
-            try
-            {
-                _logger.LogInformation("Attempting to connect to API (attempt {Attempt}/{Total})...", attempt + 1, delays.Length);
-                
-                var response = await httpClient.GetAsync("/api/alarms/crypto-symbols", stoppingToken);
-                
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation("Successfully connected to API");
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to connect to API (attempt {Attempt}/{Total})", attempt + 1, delays.Length);
-            }
-
-            if (attempt < delays.Length - 1)
-            {
-                _logger.LogInformation("Waiting {Delay} seconds before next attempt...", delays[attempt]);
-                await Task.Delay(TimeSpan.FromSeconds(delays[attempt]), stoppingToken);
-            }
-        }
-
-        return false;
-    }
-
     private async Task GenerateAndSendPricesAsync()
     {
         var httpClient = _httpClientFactory.CreateClient("ApiClient");
@@ -99,7 +57,7 @@ public class PriceGeneratorWorker : BackgroundService
         foreach (var (symbol, (id, min, max)) in _cryptoSymbols)
         {
             var price = GenerateRandomPrice(min, max);
-            _logger.LogInformation("💰 {Symbol} price: {Price:F2}", symbol, price);
+            _logger.LogInformation("{Symbol} price: {Price:F2}", symbol, price);
 
             await SendPriceUpdateAsync(httpClient, id, price);
         }

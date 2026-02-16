@@ -20,20 +20,27 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     restart: on-failure
     networks:
       - cryptoalarm-network
 
-  worker:
+  priceworker:
     build:
       context: .
-      dockerfile: Dockerfile.worker
-    container_name: cryptoalarm-worker
+      dockerfile: Dockerfile.priceworker
+    container_name: cryptoalarm-priceworker
     environment:
       - ApiSettings__BaseUrl=http://api:8080
       - TZ=Europe/Istanbul
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: on-failure
     networks:
       - cryptoalarm-network
