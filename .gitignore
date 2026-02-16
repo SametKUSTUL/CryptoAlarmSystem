@@ -41,3 +41,8 @@ artifacts/
 *.db
 *.db-shm
 *.db-wal
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
