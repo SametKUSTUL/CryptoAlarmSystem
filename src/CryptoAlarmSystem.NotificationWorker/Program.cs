@@ -1,9 +1,14 @@
 using CryptoAlarmSystem.Application.Strategies;
 using CryptoAlarmSystem.Infrastructure;
 using CryptoAlarmSystem.NotificationWorker;
+using NLog.Extensions.Logging;
 using RabbitMQ.Client;
 
 var builder = Host.CreateApplicationBuilder(args);
+
+// NLog yapılandırması
+builder.Logging.ClearProviders();
+builder.Logging.AddNLog();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 

@@ -1,6 +1,11 @@
 using CryptoAlarmSystem.PriceWorker;
+using NLog.Extensions.Logging;
 
 var builder = Host.CreateApplicationBuilder(args);
+
+// NLog yapılandırması
+builder.Logging.ClearProviders();
+builder.Logging.AddNLog();
 
 builder.Services.AddHttpClient("ApiClient", client =>
 {
