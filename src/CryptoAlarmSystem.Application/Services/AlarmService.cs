@@ -33,13 +33,13 @@ public class AlarmService : IAlarmService
         {
             UserId = userId,
             CryptoSymbolId = request.CryptoSymbolId,
-            AlarmTypeId = request.AlarmTypeId.GetHashCode(),
+            AlarmTypeId = (int)request.AlarmTypeId,
             TargetPrice = request.TargetPrice,
             Status = Domain.Enums.AlarmStatus.Active,
             CreatedAt = DateTime.UtcNow,
             AlarmNotificationChannels = request.NotificationChannelIds.Select(channelId => new AlarmNotificationChannel
             {
-                NotificationChannelId = channelId.GetHashCode()
+                NotificationChannelId = (int)channelId
             }).ToList()
         };
 
@@ -50,8 +50,13 @@ public class AlarmService : IAlarmService
         return Result<AlarmResponse>.Success(alarmResponse);
     }
 
-    public async Task<List<AlarmResponse>> GetActiveAlarmsAsync(string userId)
+    public async Task<(List<AlarmResponse> Alarms, int TotalCount)> GetActiveAlarmsAsync(string userId, int pageNumber, int pageSize)
     {
+        var totalCount = await _context.Alarms
+            .Where(a => a.UserId == userId 
+                && a.Status == Domain.Enums.AlarmStatus.Active)
+            .CountAsync();
+        
         var alarms = await _context.Alarms
             .Include(a => a.CryptoSymbol)
             .Include(a => a.AlarmType)
@@ -59,9 +64,12 @@ public class AlarmService : IAlarmService
                 .ThenInclude(anc => anc.NotificationChannel)
             .Where(a => a.UserId == userId 
                 && a.Status == Domain.Enums.AlarmStatus.Active)
+            .OrderByDescending(a => a.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
-        return alarms.Select(MapToAlarmResponse).ToList();
+        return (alarms.Select(MapToAlarmResponse).ToList(), totalCount);
     }
 
     public async Task<bool> DeleteAlarmAsync(string userId, int alarmId)
@@ -95,7 +103,7 @@ public class AlarmService : IAlarmService
         var newChannels = request.NotificationChannelIds.Select(channelId => new AlarmNotificationChannel
         {
             AlarmId = alarmId,
-            NotificationChannelId = channelId.GetHashCode()
+            NotificationChannelId = (int)channelId
         }).ToList();
 
         _context.AlarmNotificationChannels.AddRange(newChannels);
@@ -104,8 +112,15 @@ public class AlarmService : IAlarmService
         return await GetAlarmByIdAsync(alarmId);
     }
 
-    public async Task<List<AlarmResponse>> GetTriggeredAlarmsAsync(string userId)
+    public async Task<(List<AlarmResponse> Alarms, int TotalCount)> GetTriggeredAlarmsAsync(string userId, int pageNumber, int pageSize)
     {
+     
+        var totalCount = await _context.Alarms
+            .Where(a => a.UserId == userId 
+                && a.Status == Domain.Enums.AlarmStatus.Triggered)
+            .CountAsync();
+
+    
         var alarms = await _context.Alarms
             .Include(a => a.CryptoSymbol)
             .Include(a => a.AlarmType)
@@ -114,12 +129,15 @@ public class AlarmService : IAlarmService
             .Include(a => a.NotificationLogs)
             .Where(a => a.UserId == userId 
                 && a.Status == Domain.Enums.AlarmStatus.Triggered)
+            .OrderByDescending(a => a.TriggeredAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
-        return alarms.Select(alarm => MapToTriggeredAlarmResponse(alarm)).ToList();
+        return (alarms.Select(alarm => MapToTriggeredAlarmResponse(alarm)).ToList(), totalCount);
     }
 
-    public async Task<List<NotificationLogResponse>> GetAlarmLogsAsync(string userId, int alarmId)
+    public async Task<(List<NotificationLogResponse> Logs, int TotalCount)> GetAlarmLogsAsync(string userId, int alarmId, int pageNumber, int pageSize)
     {
         var alarm = await _context.Alarms
             .FirstOrDefaultAsync(a => a.Id == alarmId 
@@ -127,13 +145,22 @@ public class AlarmService : IAlarmService
                 && a.Status == Domain.Enums.AlarmStatus.Triggered);
 
         if (alarm == null)
-            return new List<NotificationLogResponse>();
+            return (new List<NotificationLogResponse>(), 0);
 
-        return await _context.NotificationLogs
+        // Önce toplam kayıt sayısını al
+        var totalCount = await _context.NotificationLogs
+            .Where(nl => nl.AlarmId == alarmId)
+            .CountAsync();
+
+        // Sonra sayfalanmış veriyi al
+        var logs = await _context.NotificationLogs
             .Include(nl => nl.CryptoSymbol)
             .Include(nl => nl.AlarmType)
             .Include(nl => nl.NotificationChannel)
             .Where(nl => nl.AlarmId == alarmId)
+            .OrderByDescending(nl => nl.SentAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .Select(nl => new NotificationLogResponse(
                 nl.Id,
                 nl.AlarmId,
@@ -146,6 +173,8 @@ public class AlarmService : IAlarmService
                 nl.SentAt
             ))
             .ToListAsync();
+
+        return (logs, totalCount);
     }
 
     public async Task<List<CryptoSymbolResponse>> GetCryptoSymbolsAsync()

@@ -50,11 +50,9 @@ public class AlarmsController : ControllerBase
         [FromHeader(Name = "X-User-Id")] string? userId,
         [FromQuery] PaginationRequest pagination)
     {
-        var allAlarms = await _alarmService.GetActiveAlarmsAsync(userId!);
-        var totalRecords = allAlarms.Count;
-        var pagedAlarms = allAlarms.ApplyPagination(pagination);
+        var (alarms, totalCount) = await _alarmService.GetActiveAlarmsAsync(userId!, pagination.PageNumber, pagination.PageSize);
         
-        var response = pagedAlarms.ToPagedResponse(pagination.PageNumber, pagination.PageSize, totalRecords);
+        var response = alarms.ToPagedResponse(pagination.PageNumber, pagination.PageSize, totalCount);
         return Ok(response);
     }
 
@@ -99,11 +97,9 @@ public class AlarmsController : ControllerBase
         [FromHeader(Name = "X-User-Id")] string? userId,
         [FromQuery] PaginationRequest pagination)
     {
-        var allAlarms = await _alarmService.GetTriggeredAlarmsAsync(userId!);
-        var totalRecords = allAlarms.Count;
-        var pagedAlarms = allAlarms.ApplyPagination(pagination);
+        var (alarms, totalCount) = await _alarmService.GetTriggeredAlarmsAsync(userId!, pagination.PageNumber, pagination.PageSize);
         
-        var response = pagedAlarms.ToPagedResponse(pagination.PageNumber, pagination.PageSize, totalRecords);
+        var response = alarms.ToPagedResponse(pagination.PageNumber, pagination.PageSize, totalCount);
         return Ok(response);
     }
 
@@ -116,11 +112,9 @@ public class AlarmsController : ControllerBase
         int id,
         [FromQuery] PaginationRequest pagination)
     {
-        var allLogs = await _alarmService.GetAlarmLogsAsync(userId!, id);
-        var totalRecords = allLogs.Count;
-        var pagedLogs = allLogs.ApplyPagination(pagination);
+        var (logs, totalCount) = await _alarmService.GetAlarmLogsAsync(userId!, id, pagination.PageNumber, pagination.PageSize);
         
-        var response = pagedLogs.ToPagedResponse(pagination.PageNumber, pagination.PageSize, totalRecords);
+        var response = logs.ToPagedResponse(pagination.PageNumber, pagination.PageSize, totalCount);
         return Ok(response);
     }
 
