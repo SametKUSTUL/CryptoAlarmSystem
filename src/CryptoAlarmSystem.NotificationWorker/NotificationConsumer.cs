@@ -18,7 +18,7 @@ public class NotificationConsumer : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<NotificationConsumer> _logger;
     private IChannel? _channel;
-    private const string QueueName = "notifications";
+    private const string QueueName = "cryptoalarm.notifications";
 
     public NotificationConsumer(
         IConnection connection,

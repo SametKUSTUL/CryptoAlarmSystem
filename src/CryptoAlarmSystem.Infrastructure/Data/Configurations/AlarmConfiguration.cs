@@ -13,13 +13,12 @@ public class AlarmConfiguration : IEntityTypeConfiguration<Alarm>
         builder.Property(x => x.TargetPrice).HasPrecision(18, 8);
         builder.Property(x => x.TriggeredPrice).HasPrecision(18, 8);
         builder.Property(x => x.Status).IsRequired();
-
-        // DateTime alanlarını timestamp without time zone olarak ayarla
+        
         builder.Property(x => x.CreatedAt)
-            .HasColumnType("timestamp without time zone");
+            .HasColumnType("timestamp with time zone");
         
         builder.Property(x => x.TriggeredAt)
-            .HasColumnType("timestamp without time zone");
+            .HasColumnType("timestamp with time zone");
 
         builder.HasOne(x => x.CryptoSymbol)
             .WithMany(x => x.Alarms)

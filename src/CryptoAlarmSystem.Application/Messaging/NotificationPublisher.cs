@@ -10,7 +10,7 @@ public class NotificationPublisher
 {
     private readonly IConnection _connection;
     private readonly ILogger<NotificationPublisher> _logger;
-    private const string QueueName = "notifications";
+    private const string QueueName = "cryptoalarm.notifications";
 
     public NotificationPublisher(IConnection connection, ILogger<NotificationPublisher> logger)
     {
